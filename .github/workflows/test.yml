@@ -12,8 +12,8 @@ jobs:
       matrix:
         neovim: [v0.10.4, stable, nightly]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - uses: rhysd/action-setup-vim@v1
