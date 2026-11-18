@@ -25,8 +25,15 @@ In the window: `<CR>` jump to the file and line, `<Tab>` fold a section, `y` yan
 
 Statusline: `require("tsconfig-lens").status()` returns the tsconfig path, `"inferred"`, or `""`.
 
-## Why trust it
+## How it works
 
-Every answer comes from TypeScript itself (your LSP, `tsc --showConfig`, your project's `typescript`). The plugin guesses nothing. Where TypeScript gives no answer, it shows `unknown`.
+The plugin asks TypeScript and shows the answer. It never re-implements tsconfig rules.
 
-Options, origins and TypeScript 7 notes: `:help tsconfig-lens`
+| Shown | Comes from |
+|---|---|
+| Which tsconfig owns the file | your LSP (ts_ls, vtsls, or TypeScript 7's `tsc --lsp`). Without one, your project's `typescript` package |
+| Final values | `tsc --showConfig`, run with your project's `tsc` |
+| Extends chain | TypeScript's list of the files it loaded |
+| Line where each option is set | Computed by the plugin, then checked against TypeScript's final options. If any value differs, every origin shows `unknown` |
+
+Options and TypeScript 7 notes: `:help tsconfig-lens`
