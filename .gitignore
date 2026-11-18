@@ -1,0 +1,4 @@
+node_modules/
+!tests/fixtures/pkgext/node_modules/
+doc/tags
+tests/.tmp-*
