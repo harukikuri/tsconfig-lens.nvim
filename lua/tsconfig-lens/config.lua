@@ -6,7 +6,7 @@ M.defaults = {
   sources = { "tsserver", "api" }, -- how to find the file's tsconfig, in order
   show_origin = true,
   warn_inferred = false,
-  keymaps = { jump = "<CR>", yank = "y", refresh = "r", close = "q" },
+  keymaps = { jump = "<CR>", toggle = "<Tab>", yank = "y", refresh = "r", close = "q" },
 }
 
 M.options = vim.deepcopy(M.defaults)

@@ -199,11 +199,8 @@ test("origin: a mismatch makes every origin unknown and is logged", function()
   eq(bad, { "jsx" })
   assert(config.logs[#config.logs]:find("jsx"), "mismatch not logged")
   local lines = ui.render({ file = c3, project = { tsconfig = c3, via = "typescript API" }, data = data, origins = o })
-  for _, l in ipairs(lines) do
-    if l:match('^  strict ') then
-      assert(l:match("unknown$"), l)
-    end
-  end
+  assert(lines[4]:match("origins unknown · see :TsconfigLens log$"), lines[4])
+  assert(vim.tbl_contains(lines, "   strict                    true"), vim.inspect(lines))
 end)
 
 test("chain: tree for 3 levels, flat siblings for an array", function()
@@ -312,7 +309,7 @@ end
 test("ui: <CR> on an option jumps to where it was set", function()
   local lines = open_lens(fx .. "/chain3/src/page.tsx")
   for i, l in ipairs(lines) do
-    if l:match("^  jsx ") then
+    if l:match("^   jsx ") then
       vim.api.nvim_win_set_cursor(0, { i, 0 })
     end
   end
@@ -323,21 +320,65 @@ end)
 
 test("ui: inferred project, chain view and TypeScript 7", function()
   local lines = open_lens(fx .. "/chain3/scripts/seed.ts")
-  assert(lines[2]:match("^project: none %(inferred project%)"), lines[2])
-  eq(lines[3], "  This file is not included by any tsconfig.json.")
+  assert(lines[2]:match("^ ╰─ none · inferred project  +via typescript API$"), lines[2])
+  eq(lines[4], "   This file is not included by any tsconfig.json.")
 
   vim.cmd("close")
   lines = open_lens(fx .. "/chain3/src/page.tsx", "chain")
   eq(vim.list_slice(lines, 4), {
-    "Extends",
-    "  tests/fixtures/chain3/tsconfig.json",
-    "  └ tests/fixtures/chain3/configs/react.json",
-    "    └ tests/fixtures/chain3/configs/base.json",
+    "   tests/fixtures/chain3/tsconfig.json",
+    "   └ tests/fixtures/chain3/configs/react.json",
+    "     └ tests/fixtures/chain3/configs/base.json",
   })
 
   vim.cmd("close")
   lines = open_lens(fx .. "/ts7/src/index.ts")
-  assert(vim.tbl_contains(lines, "  (origins unavailable on TypeScript 7)"), vim.inspect(lines))
+  assert(lines[4]:match("origins unavailable on TypeScript 7$"), vim.inspect(lines))
+end)
+
+test("ui: sections per file, overridden values, implied options fold", function()
+  local lines = open_lens(fx .. "/array/src/index.ts")
+  local function find(pattern)
+    for i, l in ipairs(lines) do
+      if l:match(pattern) then
+        return i
+      end
+    end
+  end
+  local b, a = find("^ ▾ tests/fixtures/array/b.json +1 set$"), find("^ ▾ tests/fixtures/array/a.json +2 set$")
+  assert(b and a and b < a, "closest file first: " .. vim.inspect(lines))
+  assert(lines[b + 1]:match("^   strict +false +3$"), lines[b + 1])
+  assert(lines[a + 1]:match("^   strict +true  ↑ overridden +3$"), lines[a + 1])
+
+  local fold = find("^ ▸ 10 implied by other options")
+  assert(fold, vim.inspect(lines))
+  eq(#lines, fold)
+  vim.api.nvim_win_set_cursor(0, { fold, 0 })
+  vim.api.nvim_feedkeys(vim.keycode("<Tab>"), "x", false)
+  lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  assert(lines[fold]:match("^ ▾ 10 implied"), lines[fold])
+  eq(#lines, fold + 10)
+  assert(lines[fold + 1]:match("^   module +es2020$"), lines[fold + 1])
+
+  -- <Tab> on an option row folds its file section; again on the header opens it.
+  vim.api.nvim_win_set_cursor(0, { a + 2, 0 })
+  vim.api.nvim_feedkeys(vim.keycode("<Tab>"), "x", false)
+  lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  assert(lines[a]:match("^ ▸ tests/fixtures/array/a.json +2 set$"), lines[a])
+  eq(lines[a + 1], "")
+  eq(vim.api.nvim_win_get_cursor(0)[1], a)
+  vim.api.nvim_feedkeys(vim.keycode("<Tab>"), "x", false)
+  lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  assert(lines[a + 2]:match("^   target +es2020 +4$"), lines[a + 2])
+end)
+
+test("ui: pretty values stay lossless", function()
+  eq(ui.pretty('"es2022"'), "es2022")
+  eq(ui.pretty('["dom","es2022"]'), "dom · es2022")
+  eq(ui.pretty('{"@/*":["./src/*"],"~/*":["./a/*","./b/*"]}'), "@/* → ./src/*   ~/* → ./a/*, ./b/*")
+  eq(ui.pretty("true"), "true")
+  eq(ui.pretty("[]"), "[]")
+  eq(ui.pretty('[1,"a"]'), '[1,"a"]')
 end)
 
 test("status: tsconfig, inferred, or empty", function()

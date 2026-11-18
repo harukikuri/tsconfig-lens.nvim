@@ -21,7 +21,7 @@ Needs Neovim >= 0.10, Node.js, and `typescript` in your project.
 | `:TsconfigLens chain` | extends chain only |
 | `:TsconfigLens log` | errors |
 
-In the window: `<CR>` jump to the file and line, `y` yank, `r` refresh, `q` close.
+In the window: `<CR>` jump to the file and line, `<Tab>` fold a section, `y` yank, `r` refresh, `q` close.
 
 Statusline: `require("tsconfig-lens").status()` returns the tsconfig path, `"inferred"`, or `""`.
 

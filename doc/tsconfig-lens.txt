@@ -45,17 +45,29 @@ The project line says how the answer was obtained:
 ==============================================================================
 3. LENS WINDOW                                          *tsconfig-lens-window*
 
-  <CR>   On a chain line, open that tsconfig. On an option line, open the
-         file and line where the option was set.
+The window has one section per file of the extends chain, closest to your
+file first. Each section lists the options that file sets:
+
+  strict        true                  20     this value is in effect
+  strict        false  ↑ overridden    3     a later file set it again
+
+Options TypeScript reports although no file sets them (implied, e.g.
+`composite` -> `declaration`) are in the last section, folded by default.
+Every section folds with <Tab>.
+
+Values are shown lighter than JSON (no quotes, `a · b` for lists,
+`key → target` for `paths`); `y` yanks the exact JSON.
+
+If the origins cannot be verified, the window shows one flat list from
+`tsc --showConfig` and says why: unknown (see |:TsconfigLens| log) or
+unavailable on TypeScript 7.
+
+  <CR>   Open the file and line under the cursor. On a section header
+         (`▾` / `▸`), fold or unfold it.
+  <Tab>  Fold / unfold the section under the cursor.
   y      Yank the option under the cursor as `"key": value`.
   r      Drop the cache and fetch again.
   q      Close.
-
-Origins:
-  file:line             the last file in the chain that set the option
-  not set in any file   TypeScript reports it, but no file sets it (implied
-                        by another option, e.g. `composite` -> `declaration`)
-  unknown               the self-check failed, see |:TsconfigLens| log
 
 ==============================================================================
 4. CONFIGURATION                                        *tsconfig-lens-config*
@@ -68,7 +80,8 @@ Origins:
     show_origin = true,
     warn_inferred = false,           -- HINT on line 1 of files outside
                                      -- every tsconfig
-    keymaps = { jump = "<CR>", yank = "y", refresh = "r", close = "q" },
+    keymaps = { jump = "<CR>", toggle = "<Tab>", yank = "y",
+                refresh = "r", close = "q" },
   })
 <
 `setup()` is only needed for options, |tsconfig-lens-status| and
@@ -117,7 +130,10 @@ invalid option is shown as TypeScript reads it.
   TsconfigLensPath      -> Directory
   TsconfigLensKey       -> Identifier
   TsconfigLensValue     -> String
+  TsconfigLensBoolean   -> Boolean
   TsconfigLensOrigin    -> Comment
+  TsconfigLensLine      -> LineNr
+  TsconfigLensOverridden   Comment's color, struck through
   TsconfigLensWarning   -> DiagnosticWarn
 
  vim:tw=78:ts=8:ft=help:norl:
