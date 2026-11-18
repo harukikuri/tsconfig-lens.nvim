@@ -1,8 +1,9 @@
 # tsconfig-lens.nvim
 
-Which tsconfig applies to this file, and what are its final settings?
-
-![tsconfig-lens window](assets/screenshot.png)
+<p align="center">
+  <img src="assets/screenshot.png" alt="tsconfig-lens window" width="580"><br>
+  <em>Which tsconfig applies to this file, and what are its final settings?</em>
+</p>
 
 ## Install
 
