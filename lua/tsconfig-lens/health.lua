@@ -26,6 +26,14 @@ local function target_buf()
   if alt > 0 and is_ts(vim.api.nvim_buf_get_name(alt)) then
     return alt
   end
+  -- Opened in a split: the previous window still shows the file.
+  local prev_win = vim.fn.win_getid(vim.fn.winnr("#"))
+  if prev_win ~= 0 then
+    local buf = vim.api.nvim_win_get_buf(prev_win)
+    if is_ts(vim.api.nvim_buf_get_name(buf)) then
+      return buf
+    end
+  end
   local prev = vim.fn.tabpagenr("#")
   if prev > 0 then
     local buf = vim.api.nvim_win_get_buf(vim.api.nvim_tabpage_get_win(vim.api.nvim_list_tabpages()[prev]))

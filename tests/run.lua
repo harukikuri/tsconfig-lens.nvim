@@ -414,9 +414,21 @@ end)
 
 local function checkhealth()
   vim.cmd("checkhealth tsconfig-lens")
-  local text = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
-  -- Newer Neovim opens :checkhealth in a new tab; older in the current window.
-  vim.cmd(#vim.api.nvim_list_tabpages() > 1 and "tabclose" or "bwipeout!")
+  -- Where and when the report appears differs between Neovim versions
+  -- (new tab, split or current window; filled synchronously or later).
+  local text, health_buf = "", nil
+  vim.wait(20000, function()
+    for _, b in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(b) and vim.bo[b].filetype == "checkhealth" then
+        health_buf = b
+        text = table.concat(vim.api.nvim_buf_get_lines(b, 0, -1, false), "\n")
+      end
+    end
+    return text:find("Current file", 1, true) ~= nil
+  end, 50)
+  if health_buf then
+    vim.cmd("silent! bwipeout! " .. health_buf)
+  end
   return text
 end
 
