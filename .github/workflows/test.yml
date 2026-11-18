@@ -1,0 +1,25 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        neovim: [v0.10.4, stable, nightly]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.neovim }}
+      - run: npm ci --prefix tests && npm ci --prefix tests/fixtures/ts7
+      - run: nvim --headless -u NONE -l tests/run.lua
+      - run: nvim --headless -u NONE -c "try | helptags doc | catch | cquit | endtry" -c "qa!"
