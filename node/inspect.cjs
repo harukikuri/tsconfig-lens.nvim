@@ -147,17 +147,23 @@ function buildLayers(ts, root, pc, order) {
   const layers = order.map((f) => {
     const text = ts.sys.readFile(f) || "";
     const { config } = ts.readConfigFile(f, () => text);
-    const conv = ts.convertCompilerOptionsFromJson((config && config.compilerOptions) || {}, path.dirname(f), f);
+    const rawOptions = (config && config.compilerOptions) || {};
+    const rawByLower = {};
+    for (const [k, v] of Object.entries(rawOptions)) rawByLower[k.toLowerCase()] = JSON.stringify(v);
+    const conv = ts.convertCompilerOptionsFromJson(rawOptions, path.dirname(f), f);
     const options = {};
     const lineByLower = keyLines(ts, f, text);
     const lines = {};
+    // `raw`: the value exactly as written in this file, for display only.
+    const raw = {};
     for (const [k, v] of Object.entries(conv.options)) {
       if (k === "configFilePath" || k === "pathsBasePath") continue;
       options[k] = substituteConfigDir(v, path.dirname(root));
       if (lineByLower[k.toLowerCase()]) lines[k] = lineByLower[k.toLowerCase()];
+      if (rawByLower[k.toLowerCase()] !== undefined) raw[k] = rawByLower[k.toLowerCase()];
       keys.add(k);
     }
-    return { path: f, options, lines };
+    return { path: f, options, lines, raw };
   });
   const final = {};
   for (const k of keys) if (pc.options[k] !== undefined) final[k] = pc.options[k];
