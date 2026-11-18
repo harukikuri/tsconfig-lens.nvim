@@ -1,0 +1,123 @@
+*tsconfig-lens.txt*  Show the tsconfig that really applies to the current file
+
+==============================================================================
+CONTENTS                                              *tsconfig-lens-contents*
+
+  1. Principle ................................. |tsconfig-lens-principle|
+  2. Commands .................................. |tsconfig-lens-commands|
+  3. Lens window ............................... |tsconfig-lens-window|
+  4. Configuration ............................. |tsconfig-lens-config|
+  5. Statusline ................................ |tsconfig-lens-status|
+  6. TypeScript 7 .............................. |tsconfig-lens-ts7|
+  7. Errors .................................... |tsconfig-lens-errors|
+  8. Highlights ................................ |tsconfig-lens-highlights|
+
+==============================================================================
+1. PRINCIPLE                                         *tsconfig-lens-principle*
+
+tsconfig-lens decides nothing by itself. Which tsconfig applies to a file and
+what the final options are is asked to TypeScript (tsserver, `tsc`, and the
+TypeScript API of the `typescript` installed in your project). What TypeScript
+does not answer is shown as "unknown", never guessed.
+
+The only thing the plugin computes is the origin of each option (which file
+set it). That result is checked against TypeScript's final options every
+time; if a single option disagrees, all origins are shown as "unknown" and
+the disagreement is written to |:TsconfigLens| log.
+
+Requirements: Neovim >= 0.10, Node.js, `typescript` in the project.
+
+==============================================================================
+2. COMMANDS                                           *tsconfig-lens-commands*
+
+                                                               *:TsconfigLens*
+:TsconfigLens           Show the tsconfig of the current file, its extends
+                        chain and the effective compilerOptions.
+:TsconfigLens chain     Show only the extends chain.
+:TsconfigLens log       Show self-check failures and errors.
+
+The project line says how the answer was obtained:
+  (via tsserver)        asked ts_ls / vtsls (TypeScript <= 6)
+  (via tsgo)            asked TypeScript 7's language server
+  (via typescript API)  asked the project's `typescript` from Node.js; this
+                        can differ from what your editor uses.
+
+==============================================================================
+3. LENS WINDOW                                          *tsconfig-lens-window*
+
+  <CR>   On a chain line, open that tsconfig. On an option line, open the
+         file and line where the option was set.
+  y      Yank the option under the cursor as `"key": value`.
+  r      Drop the cache and fetch again.
+  q      Close.
+
+Origins:
+  file:line             the last file in the chain that set the option
+  not set in any file   TypeScript reports it, but no file sets it (implied
+                        by another option, e.g. `composite` -> `declaration`)
+  unknown               the self-check failed, see |:TsconfigLens| log
+
+==============================================================================
+4. CONFIGURATION                                        *tsconfig-lens-config*
+
+>lua
+  require("tsconfig-lens").setup({
+    open = "float",                  -- "float" | "split" | "vsplit"
+    node = "node",                   -- Node.js executable
+    sources = { "tsserver", "api" }, -- how to find the file's tsconfig
+    show_origin = true,
+    warn_inferred = false,           -- HINT on line 1 of files outside
+                                     -- every tsconfig
+    keymaps = { jump = "<CR>", yank = "y", refresh = "r", close = "q" },
+  })
+<
+`setup()` is only needed for options, |tsconfig-lens-status| and
+`warn_inferred`. The command works without it.
+
+`sources`:
+  "tsserver"  the LSP client attached to the buffer: ts_ls, vtsls or tsgo
+  "api"       the project's `typescript` through Node.js
+
+==============================================================================
+5. STATUSLINE                                           *tsconfig-lens-status*
+
+                                                        *tsconfig-lens.status()*
+>lua
+  require("tsconfig-lens").status()
+  -- "apps/web/tsconfig.json" / "inferred" / ""
+<
+Fetched asynchronously when a buffer is entered and when an LSP client
+attaches, then cached in the buffer. Drawing the statusline never starts
+Node.js. Requires `setup()`.
+
+==============================================================================
+6. TYPESCRIPT 7                                            *tsconfig-lens-ts7*
+
+TypeScript 7 (the native port) has no `extendedSourceFiles` in its API, so the
+extends chain and the origins are shown as unavailable. The project and the
+effective options still come from TypeScript. Results are not cached for
+TypeScript 7 because the files to watch are unknown.
+
+TypeScript 7 does not report tsconfig errors from `tsc --showConfig`, so an
+invalid option is shown as TypeScript reads it.
+
+==============================================================================
+7. ERRORS                                               *tsconfig-lens-errors*
+
+  node not found: set config.node
+  typescript is not installed in this project
+  <TypeScript's own message>       tsconfig cannot be parsed
+  not a TypeScript/JavaScript file
+  could not determine the project  reasons are in |:TsconfigLens| log
+
+==============================================================================
+8. HIGHLIGHTS                                       *tsconfig-lens-highlights*
+
+  TsconfigLensHeader    -> Title
+  TsconfigLensPath      -> Directory
+  TsconfigLensKey       -> Identifier
+  TsconfigLensValue     -> String
+  TsconfigLensOrigin    -> Comment
+  TsconfigLensWarning   -> DiagnosticWarn
+
+ vim:tw=78:ts=8:ft=help:norl:
