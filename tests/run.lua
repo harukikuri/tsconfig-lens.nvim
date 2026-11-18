@@ -139,6 +139,10 @@ test("tsserver (typescript-language-server) agrees with the API", function()
   }, { cases[2], cases[3], cases[8] })
 end)
 
+test("tsserver (vtsls) agrees with the API", function()
+  with_lsp("vtsls", { tests_dir .. "/node_modules/.bin/vtsls", "--stdio" }, nil, { cases[2], cases[3], cases[8] })
+end)
+
 test("tsgo (TypeScript 7 LSP) agrees with the API", function()
   with_lsp("tsgo", { fx .. "/ts7/node_modules/.bin/tsc", "--lsp", "--stdio" }, nil, { cases[9] })
 end)

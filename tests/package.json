@@ -1,6 +1,7 @@
 {
   "private": true,
   "devDependencies": {
+    "@vtsls/language-server": "0.3.0",
     "typescript": "6.0.3",
     "typescript-language-server": "6.1.0"
   }
