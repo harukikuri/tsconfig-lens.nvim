@@ -62,6 +62,9 @@ If the origins cannot be verified, the window shows one flat list from
 `tsc --showConfig` and says why: unknown (see |:TsconfigLens| log) or
 unavailable on TypeScript 7.
 
+The bottom of the window says what <CR> does on the current line, e.g.
+`<CR> open client/tsconfig.json:20`.
+
   <CR>   Open the file and line under the cursor. On a section header
          (`▾` / `▸`), fold or unfold it.
   <Tab>  Fold / unfold the section under the cursor.

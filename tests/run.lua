@@ -313,6 +313,13 @@ test("ui: <CR> on an option jumps to where it was set", function()
       vim.api.nvim_win_set_cursor(0, { i, 0 })
     end
   end
+  -- The footer says what <CR> does on this row.
+  vim.api.nvim_exec_autocmds("CursorMoved", { buffer = 0 })
+  local footer = vim.api.nvim_win_get_config(0).footer
+  footer = type(footer) == "table" and table.concat(vim.tbl_map(function(c)
+    return c[1]
+  end, footer)) or footer
+  eq(footer, " <CR> open tests/fixtures/chain3/configs/react.json:4  ·  y copy  ·  q close ")
   vim.cmd('exe "normal \\<CR>"')
   eq(vim.api.nvim_buf_get_name(0), fx .. "/chain3/configs/react.json")
   eq(vim.api.nvim_win_get_cursor(0)[1], 4)

@@ -151,7 +151,7 @@ function M.render(s)
   local function section(id, title, note, title_group)
     local mark = folded(id) and " ▸ " or " ▾ "
     local text = right(mark .. title, note)
-    local row = add(text, { toggle = id })
+    local row = add(text, { toggle = id, folded = folded(id) })
     hl(row, 0, #mark, "TsconfigLensHeader")
     hl(row, #mark, #mark + #title, title_group or "TsconfigLensPath")
     hl(row, #text - #note, -1, note == config.options.keymaps.toggle and "TsconfigLensLine" or "TsconfigLensOrigin")
@@ -317,6 +317,22 @@ function M.show_text(lines)
   end, { buffer = buf, nowait = true })
 end
 
+--- What the keys do on this row; shown at the bottom of the window.
+function M.hint(a)
+  local k = config.options.keymaps
+  local parts = {}
+  if a and a.toggle then
+    table.insert(parts, k.jump .. (a.folded and " unfold" or " fold"))
+  elseif a and a.path then
+    table.insert(parts, k.jump .. " open " .. rel(a.path) .. (a.line and (":" .. a.line) or ""))
+  end
+  if a and a.yank then
+    table.insert(parts, k.yank .. " copy")
+  end
+  table.insert(parts, k.close .. " close")
+  return " " .. table.concat(parts, "  ·  ") .. " "
+end
+
 --- @param s table see M.render
 --- @param refresh fun() re-run the lens without cache
 function M.show(s, refresh)
@@ -339,11 +355,28 @@ function M.show(s, refresh)
     vim.bo[buf].modifiable = false
     fit_float(win, lines)
   end
-  draw()
 
   local function current()
     return actions[vim.api.nvim_win_get_cursor(win)[1]]
   end
+
+  -- Say what <CR> will do on the current row, so the jump is discoverable.
+  vim.wo[win].cursorline = true
+  local function update_hint()
+    if not vim.api.nvim_win_is_valid(win) then
+      return
+    end
+    local text = M.hint(current())
+    if config.options.open == "float" then
+      vim.api.nvim_win_set_config(win, { footer = text, footer_pos = "center" })
+    else
+      vim.wo[win].winbar = text:gsub("%%", "%%%%")
+    end
+  end
+  vim.api.nvim_create_autocmd("CursorMoved", { buffer = buf, callback = update_hint })
+
+  draw()
+  update_hint()
   -- Folds the section under the cursor (its header, or any of its rows).
   local function toggle()
     local a = current()
@@ -363,6 +396,7 @@ function M.show(s, refresh)
         vim.api.nvim_win_set_cursor(win, { r, 0 })
       end
     end
+    update_hint()
   end
 
   local keys = config.options.keymaps
