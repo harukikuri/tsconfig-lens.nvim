@@ -94,6 +94,11 @@ The bottom of the window says what <CR> does on the current line, e.g.
   "tsserver"  the LSP client attached to the buffer: ts_ls, vtsls or tsgo
   "api"       the project's `typescript` through Node.js
 
+The LSP answers for your LSP's workspace: tsserver does not look for a
+tsconfig.json above the client's `root_dir`. If the lens says "inferred" but
+`:TsconfigLens` with `sources = { "api" }` finds a tsconfig, your LSP's
+`root_dir` is below that tsconfig.
+
 ==============================================================================
 5. STATUSLINE                                           *tsconfig-lens-status*
 
