@@ -27,13 +27,6 @@ Statusline: `require("tsconfig-lens").status()` returns the tsconfig path, `"inf
 
 ## How it works
 
-The plugin asks TypeScript and shows the answer. It never re-implements tsconfig rules.
+Your LSP finds the tsconfig. `tsc --showConfig` gives the values. The plugin only computes which line set each option, and checks that against TypeScript. If they disagree, it shows `unknown`.
 
-| Shown | Comes from |
-|---|---|
-| Which tsconfig owns the file | your LSP (ts_ls, vtsls, or TypeScript 7's `tsc --lsp`). Without one, your project's `typescript` package |
-| Final values | `tsc --showConfig`, run with your project's `tsc` |
-| Extends chain | TypeScript's list of the files it loaded |
-| Line where each option is set | Computed by the plugin, then checked against TypeScript's final options. If any value differs, every origin shows `unknown` |
-
-Options and TypeScript 7 notes: `:help tsconfig-lens`
+More: `:help tsconfig-lens`
