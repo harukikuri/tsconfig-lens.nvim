@@ -83,8 +83,10 @@ local cases = {
   { "solution/packages/lib/src/index.ts", "solution/packages/lib/tsconfig.json" },
   { "solution/app/main.ts", "solution/tsconfig.app.json" },
   { "ts7/src/index.ts", "ts7/tsconfig.json" },
+  -- "typescript": "npm:@typescript/typescript6": the tsc bin is named tsc6.
+  { "alias/src/index.ts", "alias/tsconfig.json" },
 }
-local configs = { "simple", "chain3", "pkgext", "array", "configdir/app", "solution/packages/lib" }
+local configs = { "simple", "chain3", "pkgext", "array", "configdir/app", "solution/packages/lib", "alias" }
 
 ---------------------------------------------------------------- project (API)
 

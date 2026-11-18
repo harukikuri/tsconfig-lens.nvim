@@ -24,13 +24,18 @@ function loadTypescript(file) {
   } catch {
     fail("no_typescript", "typescript is not installed in this project");
   }
-  const version = require(pkg).version;
-  return { dir: path.dirname(pkg), version, major: Number(version.split(".")[0]) };
+  const json = require(pkg);
+  // Aliased installs (e.g. "typescript": "npm:@typescript/typescript6") name the bin differently.
+  const bins = typeof json.bin === "string" ? { tsc: json.bin } : json.bin || {};
+  const tsc = bins.tsc || Object.entries(bins).find(([name]) => name.startsWith("tsc"))?.[1];
+  if (!tsc) fail("no_typescript", `no tsc in ${pkg}`);
+  const version = json.version;
+  return { dir: path.dirname(pkg), tsc: path.join(path.dirname(pkg), tsc), version, major: Number(version.split(".")[0]) };
 }
 
 function showConfig(ts, tsconfig) {
   try {
-    const out = execFileSync(process.execPath, [path.join(ts.dir, "bin", "tsc"), "--showConfig", "-p", tsconfig], {
+    const out = execFileSync(process.execPath, [ts.tsc, "--showConfig", "-p", tsconfig], {
       cwd: path.dirname(tsconfig),
       encoding: "utf8",
       maxBuffer: 256 * 1024 * 1024,

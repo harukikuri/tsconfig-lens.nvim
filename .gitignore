@@ -3,3 +3,4 @@ node_modules/
 doc/tags
 tests/.tmp-*
 .DS_Store
+!tests/fixtures/alias/node_modules/
