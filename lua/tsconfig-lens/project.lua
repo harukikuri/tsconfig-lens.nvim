@@ -70,9 +70,10 @@ end
 local SPECIFIC = { no_node = true, no_typescript = true, tsconfig_error = true }
 
 --- @param cb fun(res: {tsconfig: string|nil, via: string}|nil, err: string|nil)
-function M.resolve(bufnr, cb)
+--- @param sources? string[] defaults to config.options.sources
+function M.resolve(bufnr, cb, sources)
   local file = vim.api.nvim_buf_get_name(bufnr)
-  local sources = config.options.sources
+  sources = sources or config.options.sources
   local reasons, specific = {}, nil
 
   local function try(i)

@@ -410,5 +410,47 @@ test("status: tsconfig, inferred, or empty", function()
   vim.api.nvim_clear_autocmds({ group = "tsconfig-lens" })
 end)
 
+---------------------------------------------------------------- health
+
+local function checkhealth()
+  vim.cmd("checkhealth tsconfig-lens")
+  local text = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+  -- Newer Neovim opens :checkhealth in a new tab; older in the current window.
+  vim.cmd(#vim.api.nvim_list_tabpages() > 1 and "tabclose" or "bwipeout!")
+  return text
+end
+
+test("health: reports node, typescript and the API answer", function()
+  buf_for(fx .. "/chain3/src/page.tsx")
+  local text = checkhealth()
+  assert(text:find("OK typescript 6.0.3", 1, true), text)
+  assert(text:find("OK tsconfig via typescript API: tests/fixtures/chain3/tsconfig.json", 1, true), text)
+  assert(text:find("WARNING no answer from an LSP", 1, true), text)
+end)
+
+test("health: warns when the LSP root_dir hides the tsconfig", function()
+  local buf = buf_for(fx .. "/chain3/src/page.tsx")
+  local id = vim.lsp.start({
+    name = "ts_ls",
+    cmd = { tests_dir .. "/node_modules/.bin/typescript-language-server", "--stdio" },
+    root_dir = fx .. "/chain3/src",
+    init_options = { tsserver = { path = tests_dir .. "/node_modules/typescript/lib" } },
+  }, { bufnr = buf })
+  assert(vim.wait(20000, function()
+    local c = vim.lsp.get_client_by_id(id)
+    return c and c.initialized
+  end, 50))
+  local text
+  -- Give tsserver time to open the file; until then it may not answer.
+  vim.wait(20000, function()
+    text = checkhealth()
+    return text:find("via tsserver", 1, true) ~= nil
+  end, 500)
+  assert(text:find("OK tsconfig via tsserver: none (inferred project)", 1, true), text)
+  assert(text:find("WARNING the LSP and the TypeScript API disagree", 1, true), text)
+  assert(text:find("ts_ls root_dir: tests/fixtures/chain3/src", 1, true), text)
+  vim.lsp.get_client_by_id(id):stop(true)
+end)
+
 out(("\n%d/%d passed"):format(total - failures, total))
 os.exit(failures > 0 and 1 or 0)

@@ -21,6 +21,7 @@ Needs Neovim >= 0.10, Node.js, and `typescript` in your project.
 | `:TsconfigLens` | tsconfig, extends chain, final options |
 | `:TsconfigLens chain` | extends chain only |
 | `:TsconfigLens log` | errors |
+| `:checkhealth tsconfig-lens` | setup problems |
 
 In the window: `<CR>` jump to the file and line, `<Tab>` fold a section, `y` yank, `r` refresh, `q` close.
 

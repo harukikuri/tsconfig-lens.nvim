@@ -35,6 +35,10 @@ Requirements: Neovim >= 0.10, Node.js, `typescript` in the project.
                         chain and the effective compilerOptions.
 :TsconfigLens chain     Show only the extends chain.
 :TsconfigLens log       Show self-check failures and errors.
+:checkhealth tsconfig-lens
+                        Check Node.js, the project's `typescript` and the
+                        LSP for the file you were editing, and warn when the
+                        LSP and the TypeScript API disagree.
 
 The project line says how the answer was obtained:
   (via tsserver)        asked ts_ls / vtsls (TypeScript <= 6)
