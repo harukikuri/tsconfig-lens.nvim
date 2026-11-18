@@ -2,18 +2,7 @@
 
 Which tsconfig applies to this file, and what are its final settings?
 
-```
-src/features/user/page.tsx
-project: apps/web/tsconfig.json                        (via tsserver)
-
-Extends
-  apps/web/tsconfig.json
-  └ packages/tsconfig/base.json
-
-Effective compilerOptions                              (tsc --showConfig)
-  strict      true         packages/tsconfig/base.json:3
-  jsx         "react-jsx"  apps/web/tsconfig.json:4
-```
+![tsconfig-lens window](assets/screenshot.png)
 
 ## Install
 
